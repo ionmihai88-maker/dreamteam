@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="ro">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ruleta Categorii — 5 sloturi / 16 grid (fix)</title>
+  <style>
+    :root {
+      --bg: #071226;
+      --panel: #0b1220;
+      --accent: #7c3aed;
+      --muted: #9fb0c8;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: #041024;
+      font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+      color: #e6eef8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden
+    }
+
+    /* Exact Full HD viewport box centered */
+    .viewport {
+      width: 1920px;
+      height: 1080px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      border-radius: 6px;
+      padding: 12px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 20px 60px rgba(2, 6, 23, 0.7);
+      overflow: hidden;
+    }
+
+    /* Header row with reset button (compact) */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 40px;
+      flex: 0 0 40px
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 700
+    }
+
+    .controls {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+      align-items: center
+    }
+
+    button {
+      background: var(--accent);
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700
+    }
+
+    button.secondary {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.06)
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed
+    }
+
+    /* Top results area: 5 equal slots using 300x300 images */
+    .results {
+      display: flex;
+      gap: 12px;
+      height: 340px;
+      /* enough for 200px image + label */
+      flex: 0 0 340px;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 12px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .slot {
+      flex: 1;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.005));
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 8px;
+      box-sizing: border-box;
+      overflow: hidden;
+      position: relative;
+      min-width: 320px;
+      /* keep consistent spacing */
+      max-width: 320px;
+    }
+
+    .slot .imgWrap {
+      width: 200px;
+      height: 200px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #061225;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slot img {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity .5s ease, transform .45s ease;
+    }
+
+    .slot.filled img {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .slot .sub {
+      margin-top: 8px;
+      font-weight: 800;
+      font-size: 24px;
+      text-align: center;
+      color: #fff;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity .45s ease, transform .45s ease;
+      width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .slot.filled .sub {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Main area with grid fills remaining space */
+    .main {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+      gap: 12px;
+    }
+
+    /* important min-height:0 */
+    .gridWrapContainer {
+      display: flex;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
+
+    /* container for grid to allow flex shrink */
+    .gridWrap {
+      flex: 1 1 auto;
+      min-height: 0;
+      /* use fixed columns matching 200px images (plus spacing) */
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 10px;
+      width: 100%;
+      padding: 12px;
+      box-sizing: border-box;
+      display: grid;
+      grid-template-columns: repeat(8, 220px);
+      grid-auto-rows: 300px;
+      /* 200px image + label + padding */
+      justify-content: center;
+      align-content: start;
+    }
+
+
+    /* Card adjustments to use fixed 300x300 thumbs */
+    .card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.005));
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      cursor: pointer;
+      transition: transform .12s ease, filter .18s ease, opacity .18s ease;
+      box-sizing: border-box;
+      padding: 6px;
+      width: 200px;
+      height: auto;
+    }
+
+    .card .thumb {
+      width: 200px;
+      height: 200px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #061225;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+    }
+
+    .card .thumb img {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .card .label {
+      margin-top: 6px;
+      font-weight: 800;
+      text-transform: uppercase;
+      font-size: 20px;
+      text-align: center;
+      color: #e6eef8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 200px;
+    }
+
+    .card.locked {
+      filter: grayscale(100%) opacity(.45);
+      pointer-events: none;
+      transform: scale(.985);
+    }
+
+    /* Outline used in roulette */
+    .outline {
+      box-shadow: 0 0 0 6px rgba(124, 58, 237, 0.12), 0 0 30px rgba(124, 58, 237, 0.22);
+      transform: translateY(-6px);
+    }
+
+    /* Popup overlay */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+    }
+
+    .overlay.show {
+      display: flex;
+    }
+
+    .backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(2, 6, 12, 0.66);
+      backdrop-filter: blur(6px);
+    }
+
+    .popup {
+      position: relative;
+      width: 820px; /* slightly wider to fit larger logo */
+      background: linear-gradient(180deg, #071229, #0c1422);
+      border-radius: 12px;
+      padding: 18px;
+      z-index: 41;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .popup .img {
+      width: 420px; /* larger logo as requested */
+      max-width: 420px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    /* popup history area delimiter */
+    #popupHistoryBoxes {
+      border: 1px dashed rgba(255, 255, 255, 0.04);
+      padding: 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.007);
+    }
+
+    .popup .img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .popup .content {
+      flex: 1;
+      color: var(--muted);
+    }
+
+    .subBtn {
+      display: block;
+      width: 100%;
+      font-size: 20px;
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .subBtn:hover {
+      border-color: rgba(255, 255, 255, 0.06);
+    }
+
+    /* small responsive guard (if someone resizes) */
+    @media (max-width:1600px) {
+      .viewport {
+        transform: scale(.85);
+        transform-origin: center center
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="viewport" role="application" aria-label="Ruleta Categorii 1920x1080">
+    <div class="topbar">
+      <div class="title">Dream team simulator</div>
+      <div class="controls">
+        <button id="pickBtn">Choose team</button>
+        <button id="resetBtn" class="secondary">Reset game</button>
+      </div>
+    </div>
+
+    <!-- Div 1: top results (5 slots) -->
+    <div class="results" id="results">
+      <div class="slot" data-index="0">
+        <div class="imgWrap"><img src="" alt=""></div>
+        <div class="sub"></div>
+      </div>
+      <div class="slot" data-index="1">
+        <div class="imgWrap"><img src="" alt=""></div>
+        <div class="sub"></div>
+      </div>
+      <div class="slot" data-index="2">
+        <div class="imgWrap"><img src="" alt=""></div>
+        <div class="sub"></div>
+      </div>
+      <div class="slot" data-index="3">
+        <div class="imgWrap"><img src="" alt=""></div>
+        <div class="sub"></div>
+      </div>
+      <div class="slot" data-index="4">
+        <div class="imgWrap"><img src="" alt=""></div>
+        <div class="sub"></div>
+      </div>
+    </div>
+
+    <!-- Div 2: bottom grid with all 16 categories -->
+    <div class="main">
+      <div class="gridWrapContainer">
+        <div class="gridWrap" id="grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup for choosing subcategory -->
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <div class="backdrop"></div>
+    <div class="popup" role="dialog" aria-modal="true">
+      <div class="img" id="popupImg"><img src="" alt=""></div>
+      <div class="content">
+        <h2 id="popupTitle" style="margin:0;color:#fff;font-size:20px">Category</h2>
+        <p id="popupDesc" style="color:var(--muted);margin-top:8px">Choose a subcategory:</p>
+        <div id="popupSubs" style="margin-top:12px"></div>
+
+        <!-- 4 empty boxes (will be populated from filledSlots) -->
+        <div id="popupHistoryBoxes" style="display:flex;gap:8px;margin-top:12px">
+          <div class="popup-history-box" data-index="0" style="width:120px;padding:6px;text-align:center;opacity:.38">
+            <div style="width:72px;height:72px;margin:0 auto;background:#061225;border-radius:6px;overflow:hidden">
+              <img class="history-img" src="" alt="" style="width:100%;height:100%;object-fit:cover">
+            </div>
+            <div class="history-name" style="margin-top:6px;font-weight:700;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+          </div>
+          <div class="popup-history-box" data-index="1" style="width:120px;padding:6px;text-align:center;opacity:.38">
+            <div style="width:72px;height:72px;margin:0 auto;background:#061225;border-radius:6px;overflow:hidden">
+              <img class="history-img" src="" alt="" style="width:100%;height:100%;object-fit:cover">
+            </div>
+            <div class="history-name" style="margin-top:6px;font-weight:700;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+          </div>
+          <div class="popup-history-box" data-index="2" style="width:120px;padding:6px;text-align:center;opacity:.38">
+            <div style="width:72px;height:72px;margin:0 auto;background:#061225;border-radius:6px;overflow:hidden">
+              <img class="history-img" src="" alt="" style="width:100%;height:100%;object-fit:cover">
+            </div>
+            <div class="history-name" style="margin-top:6px;font-weight:700;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+          </div>
+          <div class="popup-history-box" data-index="3" style="width:120px;padding:6px;text-align:center;opacity:.38">
+            <div style="width:72px;height:72px;margin:0 auto;background:#061225;border-radius:6px;overflow:hidden">
+              <img class="history-img" src="" alt="" style="width:100%;height:100%;object-fit:cover">
+            </div>
+            <div class="history-name" style="margin-top:6px;font-weight:700;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;text-align:right">
+          <button id="cancelPopup" class="secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Config
+    const MAX_ATTEMPTS = 5;
+    const ROULETTE_MS = 5000; // 5 seconds
+
+    // State
+    let attemptsLeft = MAX_ATTEMPTS;
+    const categories = [
+  {
+    id: 1,
+    name: "Yakult Brothers",
+    image: "logos/yakult_brothers.png",
+    subs: ["flyfly", "Emo", "zeal", "BoBoKa", "Tianming"],
+    locked: false
+  },
+  {
+    id: 2,
+    name: "Xtreme Gaming",
+    image: "logos/xtreme_gaming.png",
+    subs: ["Ame", "NothingToSay", "Xxs", "fy", "xNova"],
+    locked: false
+  },
+  {
+    id: 3,
+    name: "Tundra Esports",
+    image: "logos/tundra_esports.png",
+    subs: ["Pure", "bzm", "33", "Ari", "Whitemon"],
+    locked: false
+  },
+  {
+    id: 4,
+    name: "Team Tidebound",
+    image: "logos/team_tidebound.png",
+    subs: ["shiro", "Echozz", "Niu", "planet", "y`"],
+    locked: false
+  },
+  {
+    id: 5,
+    name: "Team Spirit",
+    image: "logos/team_spirit.png",
+    subs: ["Yatoro", "LarI", "Collapse", "rue", "Panto"],
+    locked: false
+  },
+  {
+    id: 6,
+    name: "Team Liquid",
+    image: "logos/team_liquid.png",
+    subs: ["m1CKe", "Nisha", "Ace", "Boxi", "tOfu"],
+    locked: false
+  },
+  {
+    id: 7,
+    name: "OG Esports",
+    image: "logos/og.png",
+    subs: ["Natsumi", "Yopaj-", "Force", "TIMS", "skem"],
+    locked: false
+  },
+  {
+    id: 8,
+    name: "Roar",
+    image: "logos/ROAR_GAMING.png",
+    subs: ["ulu", "ButterflyEffect", "ss", "clove", "smallpanda"],
+    locked: false
+  },
+  {
+    id: 9,
+    name: "Perú Rejects",
+    image: "logos/peru_rejects.png",
+    subs: ["Parker", "DarkMago", "Payk", "Michael-", "Elmisho"],
+    locked: false
+  },
+  {
+    id: 10,
+    name: "PVISION",
+    image: "logos/PARAVISION.png",
+    subs: ["Satanic", "No[o]ne-", "Dm", "9Class", "Dukalis"],
+    locked: false
+  },
+  {
+    id: 11,
+    name: "Nigma Galaxy",
+    image: "logos/nigma_galaxy.png",
+    subs: ["ta2k", "SumaiL", "No!ob™", "OmaR", "Tobi"],
+    locked: false
+  },
+  {
+    id: 12,
+    name: "Natus Vincere",
+    image: "logos/natus_vincere.png",
+    subs: ["gotthejuice", "Niku", "pma", "W_Zayac", "Riddys"],
+    locked: false
+  },
+  {
+    id: 13,
+    name: "MOUZ",
+    image: "logos/mouz.png",
+    subs: ["Crystallis", "Midone", "BOOM", "Yamich", "Kaori"],
+    locked: false
+  },
+  {
+    id: 14,
+    name: "HEROIC",
+    image: "logos/heroic.png",
+    subs: ["Yuma", "Wisper", "Davai", "Scofield", "KingJungles"],
+    locked: false
+  },
+  {
+    id: 15,
+    name: "BetBoom Team",
+    image: "logos/BETBOOM_TEAM.png",
+    subs: ["Kiritych-", "gpk-", "MieRo", "Save-", "Kataomi`"],
+    locked: false
+  },
+  {
+    id: 16,
+    name: "Apex Genesis",
+    image: "logos/apex_genesis.png",
+    subs: ["Yamsun", "RCY", "Fayde", "Bignum", "Speeed"],
+    locked: false
+  }
+];
+
+
+    let pool = categories.map(c => c.id);
+    const filledSlots = []; // each entry: {slotIndex, id, sub, image}
+
+    // DOM refs
+    const grid = document.getElementById('grid');
+    const pickBtn = document.getElementById('pickBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const results = document.getElementById('results');
+    const overlay = document.getElementById('overlay');
+    const popupImg = document.getElementById('popupImg');
+    const popupTitle = document.getElementById('popupTitle');
+    const popupSubs = document.getElementById('popupSubs');
+    const cancelPopup = document.getElementById('cancelPopup');
+
+    // Render grid 4x4
+    function renderGrid() {
+      grid.innerHTML = '';
+      categories.forEach(cat => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.id = cat.id;
+
+        const thumb = document.createElement('div');
+        thumb.className = 'thumb';
+        const img = document.createElement('img');
+        img.src = cat.image;
+        img.alt = cat.name;
+        thumb.appendChild(img);
+
+        const label = document.createElement('div');
+        label.className = 'label';
+        label.textContent = cat.name;
+
+        card.appendChild(thumb);
+        card.appendChild(label);
+
+        if (cat.locked) card.classList.add('locked');
+        grid.appendChild(card);
+      });
+    }
+
+    // Fill next available top slot
+    function fillNextSlot(selection) {
+      const nextIndex = filledSlots.length;
+      if (nextIndex >= 5) return;
+      filledSlots.push(selection);
+      const slot = results.querySelector(`.slot[data-index="${nextIndex}"]`);
+      slot.querySelector('img').src = selection.image;
+      slot.querySelector('.sub').textContent = selection.sub;
+      // trigger fade-in by adding class
+      requestAnimationFrame(() => slot.classList.add('filled'));
+      // update history boxes in case popup is open or next time it's opened
+      updatePopupHistoryBoxes();
+      // if all 5 filled, disable pick
+      if (filledSlots.length >= 5) pickBtn.disabled = true;
+    }
+
+    // Update grid visuals after lock
+    function lockCategory(id) {
+      const cat = categories.find(c => c.id === id);
+      if (cat) cat.locked = true;
+      const card = grid.querySelector(`.card[data-id="${id}"]`);
+      if (card) card.classList.add('locked');
+      pool = pool.filter(x => x !== id);
+      if (pool.length === 0 || filledSlots.length >= 5) pickBtn.disabled = true;
+    }
+
+    // Popup open: show image + sub buttons
+    function openPopup(cat) {
+      overlay.classList.add('show');
+      overlay.setAttribute('aria-hidden', 'false');
+      popupImg.innerHTML = `<img src="${cat.image}" alt="${cat.name}">`;
+      popupTitle.textContent = cat.name;
+      popupSubs.innerHTML = '';
+      cat.subs.forEach(sub => {
+        const btn = document.createElement('button');
+        btn.className = 'subBtn';
+        btn.textContent = sub;
+        btn.onclick = () => {
+          const selection = { id: cat.id, sub, image: cat.image };
+          fillNextSlot(selection);
+          lockCategory(cat.id);
+          closePopup();
+        };
+        popupSubs.appendChild(btn);
+      });
+
+      // populate the 4 history boxes with previous selections (do not change other code)
+      updatePopupHistoryBoxes();
+
+      // desaturate others, highlight this one
+      document.querySelectorAll('.card').forEach(el => {
+        if (Number(el.dataset.id) !== cat.id) el.style.filter = 'grayscale(100%) opacity(.55)';
+        else el.classList.add('outline');
+      });
+    }
+
+    function closePopup() {
+      overlay.classList.remove('show');
+      overlay.setAttribute('aria-hidden', 'true');
+      document.querySelectorAll('.card').forEach(el => {
+        el.style.filter = '';
+        el.classList.remove('outline');
+      });
+      if (filledSlots.length >= 5) pickBtn.disabled = true;
+    }
+
+    cancelPopup.addEventListener('click', closePopup);
+
+    // Roulette: outline moves among unlocked cards for ROULETTE_MS then pick final
+    function runRoulette() {
+      if (filledSlots.length >= 5) { alert('You have completed all 5 slots.'); return; }
+      if (pool.length === 0) { alert('No more categories available.'); return; }
+      pickBtn.disabled = true;
+      const availableCards = Array.from(document.querySelectorAll('.card')).filter(c => !c.classList.contains('locked'));
+      if (availableCards.length === 0) { pickBtn.disabled = true; return; }
+
+      let lastIdx = -1;
+      const start = performance.now();
+      const interval = 120;
+
+      function step() {
+        if (lastIdx >= 0) availableCards[lastIdx].classList.remove('outline');
+        lastIdx = Math.floor(Math.random() * availableCards.length);
+        availableCards[lastIdx].classList.add('outline');
+      }
+      step();
+
+      const timer = setInterval(() => {
+        if (performance.now() - start >= ROULETTE_MS) {
+          clearInterval(timer);
+          availableCards.forEach(c => c.classList.remove('outline'));
+          const chosenEl = availableCards[lastIdx];
+          const chosenId = Number(chosenEl.dataset.id);
+          const chosenCat = categories.find(c => c.id === chosenId);
+          openPopup(chosenCat);
+          pickBtn.disabled = false;
+          return;
+        }
+        step();
+      }, interval);
+    }
+
+    pickBtn.addEventListener('click', runRoulette);
+
+    // Reset game
+    resetBtn.addEventListener('click', () => {
+      if (!confirm('Reset the game? All 5 slots will be cleared.')) return;
+      attemptsLeft = MAX_ATTEMPTS;
+      pool = categories.map(c => c.id);
+      filledSlots.length = 0;
+      categories.forEach(c => c.locked = false);
+      // clear top slots
+      document.querySelectorAll('.slot').forEach(s => {
+        s.classList.remove('filled');
+        s.querySelector('img').src = '';
+        s.querySelector('.sub').textContent = '';
+      });
+      renderGrid();
+      pickBtn.disabled = false;
+    });
+
+    // Updates the 4 boxes inside the popup to reflect previous selections (first 4 entries)
+    function updatePopupHistoryBoxes() {
+      const container = document.getElementById('popupHistoryBoxes');
+      if (!container) return;
+
+      // use logo.png as placeholder when no selection
+      const placeholder = 'logo.png';
+
+      for (let i = 0; i < 4; i++) {
+        const box = container.querySelector(`.popup-history-box[data-index="${i}"]`);
+        if (!box) continue;
+        const img = box.querySelector('.history-img');
+        const nameEl = box.querySelector('.history-name');
+        const entry = filledSlots[i]; // show in chronological order (0 = first)
+        if (entry) {
+          const cat = categories.find(c => c.id === entry.id);
+          img.src = entry.image || (cat ? cat.image : placeholder);
+          img.alt = cat ? cat.name : entry.sub;
+          // show subcategory (as requested) instead of category name
+          nameEl.textContent = entry.sub || (cat ? cat.name : '—');
+          box.style.opacity = '1';
+        } else {
+          // show logo.png so the box doesn't look "missing"
+          img.src = placeholder;
+          img.alt = 'empty';
+          nameEl.textContent = '—';
+          box.style.opacity = '.9';
+        }
+      }
+    }
+
+    // Init
+    renderGrid();
+
+  </script>
+</body>
+
+</html>
