@@ -23,13 +23,15 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden
+      overflow: auto
     }
 
     /* Exact Full HD viewport box centered */
     .viewport {
-      width: 1920px;
-      height: 1080px;
+      width: 100%;
+      max-width: 1920px;
+      height: 100%;
+      max-height: 1080px;
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
       border-radius: 6px;
       padding: 12px;
@@ -39,6 +41,8 @@
       gap: 12px;
       box-shadow: 0 20px 60px rgba(2, 6, 23, 0.7);
       overflow: hidden;
+      /* IMPORTANT: lasă conținutul să se micșoreze */
+      transform: none;
     }
 
     /* Header row with reset button (compact) */
@@ -278,7 +282,8 @@
 
     .popup {
       position: relative;
-      width: 820px; /* slightly wider to fit larger logo */
+      width: 820px;
+      /* slightly wider to fit larger logo */
       background: linear-gradient(180deg, #071229, #0c1422);
       border-radius: 12px;
       padding: 18px;
@@ -290,7 +295,8 @@
     }
 
     .popup .img {
-      width: 420px; /* larger logo as requested */
+      width: 420px;
+      /* larger logo as requested */
       max-width: 420px;
       border-radius: 10px;
       overflow: hidden;
@@ -333,11 +339,37 @@
     }
 
     /* small responsive guard (if someone resizes) */
-    @media (max-width:1600px) {
-      .viewport {
-        transform: scale(.85);
-        transform-origin: center center
+    @media (max-width: 1280px) {
+
+      .slot {
+        min-width: 180px;
       }
+
+      html,
+      body {
+        justify-content: flex-start;
+        /* să nu mai fie centrat aiurea */
+        align-items: flex-start;
+      }
+
+      .viewport {
+        transform: scale(0.8);
+        transform-origin: top center;
+        height: auto;
+        /* important! */
+      }
+
+      .gridWrap {
+        grid-template-columns: repeat(8, 140px);
+        grid-auto-rows: 240px;
+      }
+
+      .card {
+        transform: scale(0.6);
+        transform-origin: center left;
+      }
+
+
     }
   </style>
 </head>
@@ -400,25 +432,33 @@
             <div style="width:72px;height:72px;margin:0 auto;background:#061225;border-radius:6px;overflow:hidden">
               <img class="history-img" src="" alt="" style="width:100%;height:100%;object-fit:cover">
             </div>
-            <div class="history-name" style="margin-top:6px;font-weight:700;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+            <div class="history-name"
+              style="margin-top:6px;font-weight:700;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+              —</div>
           </div>
           <div class="popup-history-box" data-index="1" style="width:120px;padding:6px;text-align:center;opacity:.38">
             <div style="width:72px;height:72px;margin:0 auto;background:#061225;border-radius:6px;overflow:hidden">
               <img class="history-img" src="" alt="" style="width:100%;height:100%;object-fit:cover">
             </div>
-            <div class="history-name" style="margin-top:6px;font-weight:700;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+            <div class="history-name"
+              style="margin-top:6px;font-weight:700;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+              —</div>
           </div>
           <div class="popup-history-box" data-index="2" style="width:120px;padding:6px;text-align:center;opacity:.38">
             <div style="width:72px;height:72px;margin:0 auto;background:#061225;border-radius:6px;overflow:hidden">
               <img class="history-img" src="" alt="" style="width:100%;height:100%;object-fit:cover">
             </div>
-            <div class="history-name" style="margin-top:6px;font-weight:700;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+            <div class="history-name"
+              style="margin-top:6px;font-weight:700;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+              —</div>
           </div>
           <div class="popup-history-box" data-index="3" style="width:120px;padding:6px;text-align:center;opacity:.38">
             <div style="width:72px;height:72px;margin:0 auto;background:#061225;border-radius:6px;overflow:hidden">
               <img class="history-img" src="" alt="" style="width:100%;height:100%;object-fit:cover">
             </div>
-            <div class="history-name" style="margin-top:6px;font-weight:700;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+            <div class="history-name"
+              style="margin-top:6px;font-weight:700;color:#fff;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+              —</div>
           </div>
         </div>
 
@@ -437,119 +477,119 @@
     // State
     let attemptsLeft = MAX_ATTEMPTS;
     const categories = [
-  {
-    id: 1,
-    name: "Yakult Brothers",
-    image: "logos/YAKULT_BROTHERS.png",
-    subs: ["flyfly", "Emo", "zeal", "BoBoKa", "Tianming"],
-    locked: false
-  },
-  {
-    id: 2,
-    name: "Xtreme Gaming",
-    image: "logos/XTREME_GAMING.png",
-    subs: ["Ame", "NothingToSay", "Xxs", "fy", "xNova"],
-    locked: false
-  },
-  {
-    id: 3,
-    name: "Tundra Esports",
-    image: "logos/TUNDRA_ESPORTS.png",
-    subs: ["Pure", "bzm", "33", "Ari", "Whitemon"],
-    locked: false
-  },
-  {
-    id: 4,
-    name: "Team Tidebound",
-    image: "logos/TEAM_TIDEBOUND.png",
-    subs: ["shiro", "Echozz", "Niu", "planet", "y`"],
-    locked: false
-  },
-  {
-    id: 5,
-    name: "Team Spirit",
-    image: "logos/TEAM_SPIRIT.png",
-    subs: ["Yatoro", "LarI", "Collapse", "rue", "Panto"],
-    locked: false
-  },
-  {
-    id: 6,
-    name: "Team Liquid",
-    image: "logos/TEAM_LIQUID.png",
-    subs: ["m1CKe", "Nisha", "Ace", "Boxi", "tOfu"],
-    locked: false
-  },
-  {
-    id: 7,
-    name: "OG Esports",
-    image: "logos/og.png",
-    subs: ["Natsumi", "Yopaj-", "Force", "TIMS", "skem"],
-    locked: false
-  },
-  {
-    id: 8,
-    name: "Roar",
-    image: "logos/ROAR_GAMING.png",
-    subs: ["ulu", "ButterflyEffect", "Jt-", "clove", "smallpanda"],
-    locked: false
-  },
-  {
-    id: 9,
-    name: "TEAM COBRA",
-    image: "logos/TEAM_COBRA.png",
-    subs: ["Parker", "DarkMago", "Payk", "Michael-", "Elmisho"],
-    locked: false
-  },
-  {
-    id: 10,
-    name: "PARIVISION",
-    image: "logos/PARIVISION.png",
-    subs: ["Satanic", "No[o]ne-", "Dm", "9Class", "Dukalis"],
-    locked: false
-  },
-  {
-    id: 11,
-    name: "Nigma Galaxy",
-    image: "logos/NIGMA_GALAXY.png",
-    subs: ["ta2k", "SumaiL", "No!ob™", "OmaR", "Tobi"],
-    locked: false
-  },
-  {
-    id: 12,
-    name: "Natus Vincere",
-    image: "logos/NATUS_VINCERE.png",
-    subs: ["gotthejuice", "Niku", "pma", "W_Zayac", "Riddys"],
-    locked: false
-  },
-  {
-    id: 13,
-    name: "MOUZ",
-    image: "logos/MOUZ.png",
-    subs: ["Ghost", "Midone", "BOOM", "Yamich", "Kaori"],
-    locked: false
-  },
-  {
-    id: 14,
-    name: "HEROIC",
-    image: "logos/HEROIC.png",
-    subs: ["Yuma", "Wisper", "Davai", "Scofield", "KingJungles"],
-    locked: false
-  },
-  {
-    id: 15,
-    name: "BetBoom Team",
-    image: "logos/BETBOOM_TEAM.png",
-    subs: ["Kiritych-", "gpk-", "MieRo", "Save-", "Kataomi`"],
-    locked: false
-  },
-  {
-    id: 16,
-    name: "GAMERLEGION ",
-    image: "logos/GAMERLEGION.png",
-    subs: ["Yamsun", "RCY", "Fayde", "Bignum", "Speeed"],
-    locked: false
-  }
-];
+      {
+        id: 1,
+        name: "Yakult Brothers",
+        image: "logos/YAKULT_BROTHERS.png",
+        subs: ["flyfly", "Emo", "zeal", "BoBoKa", "Tianming"],
+        locked: false
+      },
+      {
+        id: 2,
+        name: "Xtreme Gaming",
+        image: "logos/XTREME_GAMING.png",
+        subs: ["Ame", "NothingToSay", "Xxs", "fy", "xNova"],
+        locked: false
+      },
+      {
+        id: 3,
+        name: "Tundra Esports",
+        image: "logos/TUNDRA_ESPORTS.png",
+        subs: ["Pure", "bzm", "33", "Ari", "Whitemon"],
+        locked: false
+      },
+      {
+        id: 4,
+        name: "Team Tidebound",
+        image: "logos/TEAM_TIDEBOUND.png",
+        subs: ["shiro", "Echozz", "Niu", "planet", "y`"],
+        locked: false
+      },
+      {
+        id: 5,
+        name: "Team Spirit",
+        image: "logos/TEAM_SPIRIT.png",
+        subs: ["Yatoro", "LarI", "Collapse", "rue", "Panto"],
+        locked: false
+      },
+      {
+        id: 6,
+        name: "Team Liquid",
+        image: "logos/TEAM_LIQUID.png",
+        subs: ["m1CKe", "Nisha", "Ace", "Boxi", "tOfu"],
+        locked: false
+      },
+      {
+        id: 7,
+        name: "OG Esports",
+        image: "logos/og.png",
+        subs: ["Natsumi", "Yopaj-", "Force", "TIMS", "skem"],
+        locked: false
+      },
+      {
+        id: 8,
+        name: "Roar",
+        image: "logos/ROAR_GAMING.png",
+        subs: ["ulu", "ButterflyEffect", "Jt-", "clove", "smallpanda"],
+        locked: false
+      },
+      {
+        id: 9,
+        name: "TEAM COBRA",
+        image: "logos/TEAM_COBRA.png",
+        subs: ["Parker", "DarkMago", "Payk", "Michael-", "Elmisho"],
+        locked: false
+      },
+      {
+        id: 10,
+        name: "PARIVISION",
+        image: "logos/PARIVISION.png",
+        subs: ["Satanic", "No[o]ne-", "Dm", "9Class", "Dukalis"],
+        locked: false
+      },
+      {
+        id: 11,
+        name: "Nigma Galaxy",
+        image: "logos/NIGMA_GALAXY.png",
+        subs: ["ta2k", "SumaiL", "No!ob™", "OmaR", "Tobi"],
+        locked: false
+      },
+      {
+        id: 12,
+        name: "Natus Vincere",
+        image: "logos/NATUS_VINCERE.png",
+        subs: ["gotthejuice", "Niku", "pma", "W_Zayac", "Riddys"],
+        locked: false
+      },
+      {
+        id: 13,
+        name: "MOUZ",
+        image: "logos/MOUZ.png",
+        subs: ["Ghost", "Midone", "BOOM", "Yamich", "Kaori"],
+        locked: false
+      },
+      {
+        id: 14,
+        name: "HEROIC",
+        image: "logos/HEROIC.png",
+        subs: ["Yuma", "Wisper", "Davai", "Scofield", "KingJungles"],
+        locked: false
+      },
+      {
+        id: 15,
+        name: "BetBoom Team",
+        image: "logos/BETBOOM_TEAM.png",
+        subs: ["Kiritych-", "gpk-", "MieRo", "Save-", "Kataomi`"],
+        locked: false
+      },
+      {
+        id: 16,
+        name: "GAMERLEGION ",
+        image: "logos/GAMERLEGION.png",
+        subs: ["Yamsun", "RCY", "Fayde", "Bignum", "Speeed"],
+        locked: false
+      }
+    ];
 
 
     let pool = categories.map(c => c.id);
@@ -752,5 +792,3 @@
 </body>
 
 </html>
-
-
